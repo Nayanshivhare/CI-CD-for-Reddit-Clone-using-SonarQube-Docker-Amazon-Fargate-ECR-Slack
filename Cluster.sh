@@ -25,8 +25,3 @@ fi
 
 ##Step 6.1
 sudo aws eks update-kubeconfig --region us-east-2 --name eks-cluster
-
-%post
-    
-    apt-get -y update
-    apt-get -y install fort

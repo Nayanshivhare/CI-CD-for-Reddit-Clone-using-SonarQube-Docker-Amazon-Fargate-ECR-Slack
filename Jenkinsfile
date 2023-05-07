@@ -17,11 +17,7 @@ pipeline {
   }
   
   environment {
-        registryCredential = 'ecr:us-east-1:awscreds'
-        appRegistry = '334671708617.dkr.ecr.us-east-1.amazonaws.com/ecr'
-        awsRegistry = "https://334671708617.dkr.ecr.us-east-1.amazonaws.com"
-        cluster = "Stage"
-        service = "service-stage"
+        registry = 'nayanshiv1/redit'
         SONARSERVER='sonarserver'
         SONARSCANNER='sonarscanner'
     }
@@ -68,9 +64,22 @@ pipeline {
                 
             }
         }
+        stage("Docker Build and Push") {
+	        when {
+				expression { params.action == 'create' }
+			}
+	        steps {
+	            dir("${params.AppName}") {
+	                dockerBuild ( "${params.ImageName}", "${params.docker_repo}" )
+	            }
+	        }
+	    }
 
-        stage
-
+        stage('Kubernetes Deploy') {
+            agent { label 'KOPS' }
+            steps {
+                    sh "helm upgrade --install --force vproifle-stack helm/vprofilecharts --set appimage=${registry}:${BUILD_NUMBER} --namespace prod"
+            }
     }
     post {
         always {
